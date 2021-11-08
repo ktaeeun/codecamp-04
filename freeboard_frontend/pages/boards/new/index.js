@@ -23,8 +23,19 @@ import {
   Error
 } from "../../../styles/BoardsNew";
 import { useState } from 'react'
+import { useMutation, gql } from "@apollo/client";
+import { useRouter } from 'next/router'
+
+const CREATE_BOARD = gql`
+  mutation createBoard($createBoardInput: CreateBoardInput!) {
+    createBoard(createBoardInput: $createBoardInput) {
+      _id
+    }
+  }
+`;
 
 export default function BoardsNewPage() {
+  const router = useRouter()
   const [myWriter, setMyWriter] = useState("");
   const [myPassword, setMyPassword] = useState("");
   const [myTitle, setMyTitle] = useState("");
@@ -34,6 +45,8 @@ export default function BoardsNewPage() {
   const [myPasswordError, setMyPasswordError] = useState("");
   const [myTitleError, setMyTitleError] = useState("");
   const [myContentsError, setMyContentsError] = useState("");
+
+  const [createBoard] = useMutation(CREATE_BOARD);
 
   function onChangeMyWriter(event) {
     setMyWriter(event.target.value);
@@ -77,7 +90,17 @@ export default function BoardsNewPage() {
       setMyContentsError("내용을 입력해주세요.");
     }
     if (myWriter !== "" && myPassword !== "" && myTitle !== "" && myContents !== "") {
-      alert('게시물을 등록합니다!')
+      const result = await createBoard({ 
+        variables: { 
+          createBoardInput: { 
+            writer: myWriter,
+            password: myPassword,
+            title: myTitle,
+            contents: myContents
+          }
+        }
+      });
+      router.push(`/boards/${result.data.createBoard._id}`)
     }
   }
 
